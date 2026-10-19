@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arena Tarik Tambang — 2 Tim IFP</title>
+<style>
+:root{
+  --blue:#1688e8;--blue-dark:#0757a7;--blue-light:#d9efff;
+  --red:#f04452;--red-dark:#b91f38;--red-light:#ffe0e4;
+  --ink:#18324b;--paper:#fff;--green:#21a66b;--gold:#ffcf48;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;font-family:Arial,Helvetica,sans-serif;color:var(--ink)}
+body{min-height:100vh;background:linear-gradient(145deg,#eaf8ff,#fff4df);padding:clamp(8px,1.3vw,20px)}
+button{font:inherit;touch-action:manipulation}
+.app{max-width:1800px;margin:auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+.brand h1{font-size:clamp(1.25rem,2.5vw,2.6rem);margin:0;font-weight:900;letter-spacing:.02em}
+.brand p{margin:5px 0 0;font-size:clamp(.75rem,1vw,1rem);font-weight:700;color:#557087}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+.control{border:0;border-radius:12px;padding:11px 16px;background:#18324b;color:white;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #0c2133}
+.control.secondary{background:white;color:#18324b;border:2px solid #d7e4ee;box-shadow:none}
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:12px;margin-bottom:12px}
+.score{border-radius:18px;color:white;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 5px 0 #16324b18}
+.score.blue{background:linear-gradient(120deg,var(--blue),var(--blue-dark))}
+.score.red{background:linear-gradient(120deg,var(--red),var(--red-dark))}
+.score strong{font-size:clamp(1rem,1.7vw,1.7rem)}
+.score .points{font-size:clamp(1.8rem,3.5vw,3.5rem);font-weight:1000;line-height:1}
+.timerbox{min-width:112px;display:flex;flex-direction:column;justify-content:center;align-items:center;background:white;border:2px solid #e1eaf1;border-radius:18px;padding:8px 18px}
+.timerbox small{font-weight:800;color:#678096}
+#timer{font-size:clamp(1.4rem,2.2vw,2.2rem);font-weight:1000;font-variant-numeric:tabular-nums}
+.arena{position:relative;overflow:hidden;height:clamp(180px,26vh,310px);border:3px solid white;border-radius:22px;background:linear-gradient(#b9e9ff 0 53%,#a8e7a4 53% 72%,#e9c17c 72%);box-shadow:0 5px 0 #d5e4ee;margin-bottom:12px}
+.cloud{position:absolute;top:15%;width:95px;height:25px;border-radius:50px;background:#fff9}
+.cloud:before,.cloud:after{content:"";position:absolute;bottom:0;background:#fff9;border-radius:50%}
+.cloud:before{width:38px;height:38px;left:15px}.cloud:after{width:48px;height:48px;left:42px}
+.cloud.left{left:12%}.cloud.right{right:12%}
+.hill{position:absolute;left:-5%;right:-5%;height:100px;bottom:22%;border-radius:50% 50% 0 0;background:#79d28b}
+.ground{position:absolute;left:0;right:0;bottom:0;height:29%;background:repeating-linear-gradient(90deg,#d9a46c 0 45px,#e6b77d 45px 90px);border-top:5px solid #fff8}
+.player-figure{position:absolute;z-index:3;bottom:20%;font-size:clamp(3rem,8vw,7rem);filter:drop-shadow(0 4px 0 #0002);transition:transform .35s;line-height:1}
+.player-figure.blue{left:8%}.player-figure.red{right:8%}
+.rope-wrap{position:absolute;z-index:2;left:14%;right:14%;top:61%;height:18px;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.rope{height:100%;border-radius:20px;background:repeating-linear-gradient(90deg,#a86c32 0 14px,#e9c07a 14px 27px);border:2px solid #875126;box-shadow:0 3px 0 #79451e}
+.knot{position:absolute;left:50%;top:50%;width:24px;height:30px;transform:translate(-50%,-50%);background:var(--gold);border:4px solid #fff;border-radius:7px;box-shadow:0 0 0 2px #d48b20}
+.centerline{position:absolute;left:50%;top:46%;bottom:7%;border-left:3px dashed #ffffffcc;z-index:1}
+.tug-label{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#ffffffdc;border-radius:99px;padding:7px 15px;font-size:clamp(.75rem,1vw,1rem);font-weight:900;white-space:nowrap}
+.meter{height:18px;border-radius:99px;overflow:hidden;display:flex;border:3px solid white;box-shadow:0 2px 0 #d5e4ee;margin:0 0 12px;background:white}
+.meter .bluefill{background:linear-gradient(90deg,#69c7ff,var(--blue));width:50%;transition:width .5s}
+.meter .redfill{background:linear-gradient(90deg,var(--red),#ff9b9f);width:50%;transition:width .5s}
+.meter-labels{display:flex;justify-content:space-between;font-size:clamp(.7rem,1vw,1rem);font-weight:900;margin:-4px 2px 12px}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.team-panel{border:3px solid white;border-radius:20px;overflow:hidden;box-shadow:0 5px 0 #d5e4ee;min-width:0}
+.team-panel.blue{background:var(--blue-light);border-color:#8ccfff}
+.team-panel.red{background:var(--red-light);border-color:#ffabb5}
+.team-head{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;color:white}
+.blue .team-head{background:var(--blue)}.red .team-head{background:var(--red)}
+.team-head h2{font-size:clamp(1.1rem,1.8vw,1.8rem);margin:0}
+.team-head .mini-score{font-size:clamp(1.2rem,2vw,2rem);font-weight:1000}
+.question-area{padding:clamp(10px,1.5vw,20px)}
+.question-count{font-size:.85rem;font-weight:900;opacity:.75;margin-bottom:6px}
+.question{font-size:clamp(1rem,1.6vw,1.6rem);font-weight:900;line-height:1.25;min-height:2.5em;margin:0 0 12px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.answer{min-height:clamp(58px,8vh,88px);border:3px solid #ffffff;border-radius:13px;background:#fff;color:var(--ink);padding:10px;font-size:clamp(.9rem,1.35vw,1.35rem);font-weight:900;cursor:pointer;box-shadow:0 3px 0 #0001;transition:transform .1s,opacity .1s}
+.answer:active{transform:scale(.98)}
+.blue .answer:hover:not(:disabled){border-color:var(--blue)}
+.red .answer:hover:not(:disabled){border-color:var(--red)}
+.answer:disabled{cursor:default;opacity:.75}
+.answer.correct{background:#d7ffe9;border-color:#21a66b;color:#09643a}
+.answer.wrong{background:#ffe0e4;border-color:#e43b50;color:#a20e27}
+.feedback{font-size:clamp(.85rem,1.2vw,1.2rem);font-weight:900;min-height:1.4em;margin:12px 0 0}
+.statusbar{margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border-radius:14px;padding:12px 16px;font-weight:800}
+#status{font-size:clamp(.9rem,1.2vw,1.2rem)}
+#result{font-weight:1000;color:#8757cc}
+@media(max-width:760px){
+ body{padding:7px}.scoreboard{grid-template-columns:1fr 1fr}.timerbox{grid-column:1/-1;grid-row:1;min-width:0;flex-direction:row;gap:12px}.score{padding:9px}.arena{height:190px}.player-figure.blue{left:2%}.player-figure.red{right:2%}.rope-wrap{left:10%;right:10%}.panels{grid-template-columns:1fr}.team-head h2{font-size:1.15rem}.answer{min-height:58px}
+}
+@media(min-width:1200px) and (min-height:700px){.question-area{padding:18px 22px}.answer{min-height:75px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand">
+    <h1>🪢 ARENA TARIK TAMBANG</h1>
+    <p>Bahasa Inggris Kelas 5 • Quantifying Nouns: Foods and Drinks</p>
+  </div>
+  <div class="top-actions">
+    <button class="control secondary" id="soundBtn" type="button">🔊 Suara: Aktif</button>
+    <button class="control" id="restartBtn" type="button">↻ Mulai Ulang</button>
+  </div>
+</header>
+
+<section class="scoreboard">
+  <div class="score blue"><strong>🔵 TIM BIRU</strong><span class="points" id="blueScore">0</span></div>
+  <div class="timerbox"><small>WAKTU SOAL</small><span id="timer">20</span><small>detik</small></div>
+  <div class="score red"><strong>🔴 TIM MERAH</strong><span class="points" id="redScore">0</span></div>
+</section>
+
+<section class="arena" aria-label="Arena tarik tambang">
+  <div class="cloud left"></div><div class="cloud right"></div><div class="hill"></div><div class="ground"></div>
+  <div class="centerline"></div>
+  <div class="tug-label" id="arenaLabel">SIAP BERTANDING!</div>
+  <div class="player-figure blue" id="bluePlayer">🧑‍🤝‍🧑</div>
+  <div class="player-figure red" id="redPlayer">🧑‍🤝‍🧑</div>
+  <div class="rope-wrap" id="ropeWrap"><div class="rope"></div><div class="knot" id="knot"></div></div>
+</section>
+
+<div class="meter" aria-label="Posisi tarik tambang"><div class="bluefill" id="blueMeter"></div><div class="redfill" id="redMeter"></div></div>
+<div class="meter-labels"><span>◀ Tim Biru</span><span>Tim Merah ▶</span></div>
+
+<section class="panels">
+  <article class="team-panel blue" id="bluePanel">
+    <div class="team-head"><h2>🔵 TIM BIRU</h2><span class="mini-score">Skor: <span id="blueMini">0</span></span></div>
+    <div class="question-area">
+      <div class="question-count" id="blueCount">SOAL 1 / 10</div>
+      <p class="question" id="blueQuestion">Complete the phrase: I drink _____ of milk every morning.</p>
+      <div class="options" id="blueOptions"></div>
+      <p class="feedback" id="blueFeedback" aria-live="polite">Pilih jawaban yang benar!</p>
+    </div>
+  </article>
+  <article class="team-panel red" id="redPanel">
+    <div class="team-head"><h2>🔴 TIM MERAH</h2><span class="mini-score">Skor: <span id="redMini">0</span></span></div>
+    <div class="question-area">
+      <div class="question-count" id="redCount">SOAL 1 / 10</div>
+      <p class="question" id="redQuestion">What is the English phrase for “semangkuk nasi”?</p>
+      <div class="options" id="redOptions"></div>
+      <p class="feedback" id="redFeedback" aria-live="polite">Choose the correct answer!</p>
+    </div>
+  </article>
+</section>
+
+<section class="statusbar">
+  <span id="status">Materi: a bowl of rice, a glass of milk, a slice of bread, dan quantifying nouns lainnya.</span>
+  <span id="result">Tarik penanda ke garis batas untuk menang!</span>
+</section>
+</div>
+
+<script>
+const WIN_LIMIT = 5;
+const ROUND_SECONDS = 20;
+const QUESTIONS_PER_TEAM = 10;
+
+const blueQuestions = [
+ {q:'Complete the phrase: I drink _____ of milk every morning.', options:['a bottle','a bowl','a glass','a piece'], a:'a glass'},
+ {q:'She eats _____ of bread for breakfast.', options:['a glass','a slice','a can','a cup'], a:'a slice'},
+ {q:'We have _____ of soup for dinner.', options:['a bowl','a loaf','a bar','a pack'], a:'a bowl'},
+ {q:'He bought _____ of biscuits.', options:['a piece','a pack','a slice','a cup'], a:'a pack'},
+ {q:'I want _____ of tea, please.', options:['a bottle','a cup','a can','a bowl'], a:'a cup'},
+ {q:'She has _____ of chocolate.', options:['a bar','a bowl','a piece','a glass'], a:'a bar'},
+ {q:'They drink _____ of water after sport.', options:['a bottle','a bowl','a slice','a piece'], a:'a bottle'},
+ {q:'My mother makes _____ of noodles.', options:['a plate','a loaf','a bar','a cup'], a:'a plate'},
+ {q:'He eats _____ of chicken.', options:['a piece','a slice','a pack','a can'], a:'a piece'},
+ {q:'We bought _____ of juice yesterday.', options:['a carton','a can','a cup','a bowl'], a:'a carton'}
+];
+const redQuestions = [
+ {q:'What is the English phrase for “semangkuk nasi”?', options:['a bowl of rice','a glass of milk','a bar of chocolate','a pack of biscuits'], a:'a bowl of rice'},
+ {q:'Which phrase matches “sepotong kue”?', options:['a bottle of water','a piece of cake','a loaf of bread','a can of soda'], a:'a piece of cake'},
+ {q:'Choose the correct phrase for “segelas susu”.', options:['a cup of tea','a bowl of soup','a glass of milk','a plate of noodles'], a:'a glass of milk'},
+ {q:'What is “sebotol air” in English?', options:['a bottle of water','a carton of juice','a can of soda','a slice of bread'], a:'a bottle of water'},
+ {q:'Which one means “sebatang cokelat”?', options:['a loaf of bread','a bar of chocolate','a bowl of fruit','a piece of chicken'], a:'a bar of chocolate'},
+ {q:'Choose the phrase for “sepiring mi”.', options:['a plate of noodles','a pack of biscuits','a cup of tea','a bowl of rice'], a:'a plate of noodles'},
+ {q:'Which phrase means “sekeranjang buah” / a bowl of fruit?', options:['a can of soda','a bowl of fruit','a slice of bread','a glass of milk'], a:'a bowl of fruit'},
+ {q:'What is the correct phrase for a whole loaf of bread?', options:['a piece of bread','a loaf of bread','a bar of bread','a bowl of bread'], a:'a loaf of bread'},
+ {q:'Choose the correct phrase for “sekaleng soda”.', options:['a carton of juice','a bottle of water','a can of soda','a cup of tea'], a:'a can of soda'},
+ {q:'Which phrase means “secangkir teh”?', options:['a cup of tea','a bowl of soup','a pack of biscuits','a piece of cake'], a:'a cup of tea'}
+];
+
+const state = {
+ blue:{index:0,score:0,answered:false,questions:[]},
+ red:{index:0,score:0,answered:false,questions:[]},
+ position:0, // -5 blue wins, +5 red wins
+ seconds:ROUND_SECONDS,roundOpen:true,finished:false,sound:true,timerId:null
+};
+const $ = id => document.getElementById(id);
+
+function shuffle(arr){
+ const a=[...arr];
+ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+ return a;
+}
+function prepareQuestions(){
+ state.blue.questions=blueQuestions.map(q=>({...q,options:shuffle(q.options)}));
+ state.red.questions=redQuestions.map(q=>({...q,options:shuffle(q.options)}));
+}
+function beep(freq=600,duration=.1){
+ if(!state.sound)return;
+ try{
+  const Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx)return;
+  const ctx=new Ctx(),osc=ctx.createOscillator(),gain=ctx.createGain();
+  osc.frequency.value=freq;osc.type='sine';gain.gain.value=.06;
+  osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+duration);
+  osc.onended=()=>ctx.close();
+ }catch(e){}
+}
+function renderTeam(team){
+ const t=state[team],prefix=team==='blue'?'Biru':'Merah';
+ const q=t.questions[t.index];
+ $(team+'Score').textContent=t.score;
+ $(team+'Mini').textContent=t.score;
+ $(team+'Count').textContent=`SOAL ${Math.min(t.index+1,QUESTIONS_PER_TEAM)} / ${QUESTIONS_PER_TEAM}`;
+ const qEl=$(team+'Question'),opts=$(team+'Options'),fb=$(team+'Feedback');
+ if(!q){
+  qEl.textContent='Semua soal tim ini sudah selesai!';
+  opts.innerHTML='';
+  fb.textContent='Tunggu hasil pertandingan.';
+  return;
+ }
+ qEl.textContent=q.q;
+ opts.innerHTML='';
+ q.options.forEach((opt,i)=>{
+  const b=document.createElement('button');
+  b.type='button';b.className='answer';b.textContent=String.fromCharCode(65+i)+'. '+opt;
+  b.disabled=t.answered||state.finished;
+  b.addEventListener('click',()=>answer(team,opt,b));
+  opts.appendChild(b);
+ });
+ fb.textContent=t.answered?'Jawaban terkunci untuk ronde ini.':'Pilih jawaban yang benar!';
+ fb.style.color='';
+}
+function answer(team,opt,button){
+ const t=state[team];
+ if(state.finished||!state.roundOpen||t.answered||!t.questions[t.index])return;
+ t.answered=true;
+ const q=t.questions[t.index],correct=opt===q.a;
+ [...$(team+'Options').querySelectorAll('button')].forEach(b=>{
+  b.disabled=true;
+  if(b.textContent.slice(3)===q.a)b.classList.add('correct');
+ });
+ if(correct){
+  t.score++;
+  state.position += team==='blue'?-1:1;
+  $(team+'Feedback').textContent='Benar! Tim kamu menarik tali! 💪';
+  $(team+'Feedback').style.color='var(--green)';
+  beep(800,.13);
+ }else{
+  state.position += team==='blue'?1:-1;
+  $(team+'Feedback').textContent='Belum tepat! Lawan mendapat tarikan tali.';
+  $(team+'Feedback').style.color='var(--red-dark)';
+  button.classList.add('wrong');
+  beep(220,.18);
+ }
+ state.position=Math.max(-WIN_LIMIT,Math.min(WIN_LIMIT,state.position));
+ renderScores();
+ updateArena();
+ if(Math.abs(state.position)>=WIN_LIMIT){finish(teamAtEdge());return;}
+ if(state.blue.answered&&state.red.answered){
+  state.roundOpen=false;
+  $('status').textContent='Kedua tim sudah menjawab! Lanjut ke soal berikutnya.';
+  $('arenaLabel').textContent='RONDE SELESAI';
+  clearInterval(state.timerId);
+  setTimeout(nextRound,1200);
+ }else{
+  $('status').textContent=`Tim ${team==='blue'?'Biru':'Merah'} sudah menjawab. Tim lawan masih punya kesempatan!`;
+ }
+}
+function renderScores(){
+ $('blueScore').textContent=state.blue.score;$('blueMini').textContent=state.blue.score;
+ $('redScore').textContent=state.red.score;$('redMini').textContent=state.red.score;
+}
+function updateArena(){
+ const pct=((state.position+WIN_LIMIT)/(WIN_LIMIT*2))*100;
+ $('blueMeter').style.width=pct+'%';
+ $('redMeter').style.width=(100-pct)+'%';
+ $('ropeWrap').style.transform=`translateX(${state.position*5.5}%)`;
+ $('knot').style.background=state.position<0?'#65c5ff':state.position>0?'#ff737c':'var(--gold)';
+ $('bluePlayer').style.transform=`translateX(${Math.max(0,state.position)*5}px)`;
+ $('redPlayer').style.transform=`translateX(${Math.min(0,state.position)*-5}px)`;
+ if(state.position<=-3)$('arenaLabel').textContent='TIM BIRU MULAI UNGGUL!';
+ else if(state.position>=3)$('arenaLabel').textContent='TIM MERAH MULAI UNGGUL!';
+ else $('arenaLabel').textContent='TARIK TAMBANG!';
+}
+function teamAtEdge(){return state.position<0?'blue':'red'}
+function nextRound(){
+ if(state.finished)return;
+ const blueDone=state.blue.index>=QUESTIONS_PER_TEAM-1;
+ const redDone=state.red.index>=QUESTIONS_PER_TEAM-1;
+ if(blueDone&&redDone){finish(null);return;}
+ for(const team of ['blue','red']){
+  const t=state[team];
+  if(!t.answered&&t.index<QUESTIONS_PER_TEAM-1){
+   // unanswered team still advances; no point awarded
+   t.index++;
+  }else if(t.answered&&t.index<QUESTIONS_PER_TEAM-1){
+   t.index++;
+  }
+  t.answered=false;
+ }
+ state.seconds=ROUND_SECONDS;state.roundOpen=true;
+ $('timer').textContent=state.seconds;
+ $('status').textContent='Ronde baru! Pilih quantifying noun yang tepat untuk makanan atau minuman.';
+ renderTeam('blue');renderTeam('red');
+ $('arenaLabel').textContent='RONDE BARU!';
+ startTimer();
+}
+function startTimer(){
+ clearInterval(state.timerId);
+ state.timerId=setInterval(()=>{
+  if(state.finished||!state.roundOpen)return;
+  state.seconds--;
+  $('timer').textContent=state.seconds;
+  if(state.seconds<=0){
+   clearInterval(state.timerId);
+   state.roundOpen=false;
+   for(const team of ['blue','red']){
+    if(!state[team].answered)$(team+'Feedback').textContent='Waktu habis! Tidak ada tarikan dari tim ini.';
+   }
+   $('status').textContent='Waktu habis! Bersiap untuk ronde berikutnya.';
+   $('arenaLabel').textContent='WAKTU HABIS';
+   setTimeout(()=>{
+    if(!state.finished){
+     // advance only if there are questions remaining
+     if(state.blue.index<QUESTIONS_PER_TEAM-1||state.red.index<QUESTIONS_PER_TEAM-1){
+      for(const team of ['blue','red'])if(state[team].index<QUESTIONS_PER_TEAM-1)state[team].index++;
+      for(const team of ['blue','red'])state[team].answered=false;
+      state.seconds=ROUND_SECONDS;state.roundOpen=true;$('timer').textContent=state.seconds;
+      renderTeam('blue');renderTeam('red');startTimer();
+      $('status').textContent='Ronde baru! Jawab secepat dan setepat mungkin.';
+     }else finish(null);
+    }
+   },900);
+  }
+ },1000);
+}
+function finish(winner){
+ state.finished=true;state.roundOpen=false;clearInterval(state.timerId);
+ $('blueOptions').querySelectorAll('button').forEach(b=>b.disabled=true);
+ $('redOptions').querySelectorAll('button').forEach(b=>b.disabled=true);
+ if(winner==='blue'){
+  $('arenaLabel').textContent='🏆 TIM BIRU MENANG!';
+  $('status').textContent='Hebat, Tim Biru! Kalian berhasil menjawab dan menarik tali sampai batas arena!';
+  $('result').textContent='🏆 PEMENANG: TIM BIRU';
+ }else if(winner==='red'){
+  $('arenaLabel').textContent='🏆 TIM MERAH MENANG!';
+  $('status').textContent='Hebat, Tim Merah! Kalian berhasil menjawab dan menarik tali sampai batas arena!';
+  $('result').textContent='🏆 PEMENANG: TIM MERAH';
+ }else{
+  const by=state.blue.score,rd=state.red.score;
+  $('arenaLabel').textContent='PERTANDINGAN SELESAI';
+  $('status').textContent='Semua soal selesai sebelum penanda mencapai batas arena.';
+  $('result').textContent=by===rd?'HASIL SERI':(by>rd?'SKOR LEBIH TINGGI: TIM BIRU':'SKOR LEBIH TINGGI: TIM MERAH');
+ }
+ beep(950,.3);
+}
+function restart(){
+ clearInterval(state.timerId);
+ Object.assign(state,{
+  blue:{index:0,score:0,answered:false,questions:[]},
+  red:{index:0,score:0,answered:false,questions:[]},
+  position:0,seconds:ROUND_SECONDS,roundOpen:true,finished:false,timerId:null
+ });
+ prepareQuestions();
+ renderTeam('blue');renderTeam('red');renderScores();updateArena();
+ $('timer').textContent=ROUND_SECONDS;
+ $('status').textContent='Materi: a bowl of rice, a glass of milk, a slice of bread, dan quantifying nouns lainnya.';
+ $('result').textContent='Tarik penanda ke garis batas untuk menang!';
+ startTimer();
+}
+$('restartBtn').addEventListener('click',restart);
+$('soundBtn').addEventListener('click',()=>{
+ state.sound=!state.sound;
+ $('soundBtn').textContent=state.sound?'🔊 Suara: Aktif':'🔇 Suara: Mati';
+});
+restart();
+</script>
+</body>
+</html>
